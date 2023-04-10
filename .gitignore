@@ -1,0 +1,5 @@
+venv/Include 
+venv/Scripts
+venv/Lib 
+venv/backend/test_trainer
+venv/backend/lyrr-lorde
