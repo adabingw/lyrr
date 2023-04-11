@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup
 CLIENT_ACCESS_TOKEN = '8_KCUXgztIdF9QL3rGPjHjLKDe06BLJg8teuBYGOpGB_jp5GusBkBsgInkaykm3o'
 EPOCHS = 15
 NAMESPACE = 'adabingw'
-MODEL_NAME = 'lyrr-lorde'
+MODEL_NAME = 'lyrr-taylorswift'
 
 #@title Data preparation
 def artist_songs(artist_id, per_page=50, page=None, sort='popularity'):
@@ -110,14 +110,14 @@ def collect_data(artist, genius):
         print("Check existing dataset first...")
         array = None 
 
-        try: 
-            url = f"https://huggingface.co/datasets/{NAMESPACE}/{MODEL_NAME}/tree/main"
-            data = requests.get(url).text
-            if data != "Not Found":
-                datasets = load_dataset(f"{NAMESPACE}/{MODEL_NAME}")
-                print("Dataset downloaded!")
-        except: 
-            pass 
+        # try: 
+        #     url = f"https://huggingface.co/datasets/{NAMESPACE}/{MODEL_NAME}/tree/main"
+        #     data = requests.get(url).text
+        #     if data != "Not Found":
+        #         datasets = load_dataset(f"{NAMESPACE}/{MODEL_NAME}")
+        #         print("Dataset downloaded!")
+        # except: 
+        #     pass 
         
         if datasets == None:
             print("Dataset does not exist!")
@@ -161,8 +161,11 @@ def collect_data(artist, genius):
         import Exception
         raise Exception("Artist is None")
 
-def collect(artist_name = "Lorde"): 
+def collect(artist_name = "Taylor Swift"): 
     genius = lyricsgenius.Genius(CLIENT_ACCESS_TOKEN)
     artist = genius.search_artist(artist_name, max_songs=0, get_full_info=False) 
     datasets = collect_data(artist, genius)
     return datasets
+
+if __name__ == "__main__":
+    collect()

@@ -82,6 +82,7 @@ def get_model(MODEL_NAME):
     
 def generator(text="Salt air", name="lorde"):    
     model = None 
+    print(name)
     MODEL_NAME = "lyrr-" + name
     try: 
         model = AutoModelForCausalLM.from_pretrained(f"{NAMESPACE}/{MODEL_NAME}", cache_dir=pathlib.Path(MODEL_NAME).resolve())

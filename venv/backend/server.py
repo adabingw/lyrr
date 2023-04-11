@@ -6,7 +6,7 @@ from model import generator
 app = Flask(__name__)
 CORS(app, support_credentials=True)
 
-models = ['Lorde'] 
+models = ['Lorde', 'Taylor Swift'] 
 
 @app.route('/select', methods=['POST'])
 @cross_origin()

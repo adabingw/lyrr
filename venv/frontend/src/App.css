@@ -26,6 +26,10 @@
   border-radius: 12px;
 }
 
+.get-lyrics:hover {
+  cursor: pointer;
+}
+
 .title {
   font-size: 50px;
   margin-bottom: 30px; 
@@ -35,6 +39,10 @@
 
 .lyrics {
   margin-top: 15px;
-  min-height: 20vh;
-  min-width: 40vw;
+  max-height: 20vh;
+  max-width: 40vw;
+}
+
+.spin-wrapper .uil-spin-css > div > div {
+  background: black !important;
 }
