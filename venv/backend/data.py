@@ -14,7 +14,6 @@ EPOCHS = 15
 NAMESPACE = 'adabingw'
 MODEL_NAME = 'lyrr-taylorswift'
 
-#@title Data preparation
 def artist_songs(artist_id, per_page=50, page=None, sort='popularity'):
     url = f'https://api.genius.com/artists/{artist_id}/songs?sort={sort}&per_page={per_page}&page={page}'
     headers = {
@@ -110,14 +109,14 @@ def collect_data(artist, genius):
         print("Check existing dataset first...")
         array = None 
 
-        # try: 
-        #     url = f"https://huggingface.co/datasets/{NAMESPACE}/{MODEL_NAME}/tree/main"
-        #     data = requests.get(url).text
-        #     if data != "Not Found":
-        #         datasets = load_dataset(f"{NAMESPACE}/{MODEL_NAME}")
-        #         print("Dataset downloaded!")
-        # except: 
-        #     pass 
+        try: 
+            url = f"https://huggingface.co/datasets/{NAMESPACE}/{MODEL_NAME}/tree/main"
+            data = requests.get(url).text
+            if data != "Not Found":
+                datasets = load_dataset(f"{NAMESPACE}/{MODEL_NAME}")
+                print("Dataset downloaded!")
+        except: 
+            pass 
         
         if datasets == None:
             print("Dataset does not exist!")
