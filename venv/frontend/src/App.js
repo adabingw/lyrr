@@ -85,7 +85,11 @@ function App() {
                 }
             }}
           >
-            {parse_models()}
+            { models.map((model, index) => {
+              return (
+                <MenuItem value={index}>{model}</MenuItem>
+              )
+            })}
           </Select>
         </FormControl> <br />
         Start the lyrics:
