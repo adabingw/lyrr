@@ -1,8 +1,17 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM, TrainingArguments, Trainer
+import torch
 
 from data import collect
 import random
 import pathlib
+import requests
+
+import nltk
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+from datasets import load_dataset
 
 EPOCHS = 15
 NAMESPACE = 'adabingw'
@@ -68,6 +77,7 @@ def get_model(MODEL_NAME):
         train_dataset=lm_datasets["train"],
         eval_dataset=lm_datasets["validation"]
     )
+    
     trainer.train()
     trainer.save_model(f"./{MODEL_NAME}") 
     
@@ -78,7 +88,40 @@ def get_model(MODEL_NAME):
     except: 
         import Exception
         raise Exception("Error in loading model, please ensure that the initial repo is created in the namespace")
-    
+
+def evaluate_coherence(generated_lyrics, MODEL_NAME):
+    # Initialize NLTK stopwords
+    datasets = None
+    print("Check existing dataset first...")
+
+    try: 
+        url = f"https://huggingface.co/datasets/{NAMESPACE}/{MODEL_NAME}/tree/main"
+        data = requests.get(url).text
+        if data != "Not Found":
+            datasets = load_dataset(f"{NAMESPACE}/{MODEL_NAME}")
+            print("Dataset downloaded!")
+    except: 
+        pass
+        
+    nltk.download('stopwords')
+    stop_words = set(stopwords.words('english'))
+
+    # Tokenize generated lyrics
+    generated_tokens = word_tokenize(generated_lyrics.lower())
+
+    # Remove stopwords from generated lyrics
+    generated_tokens = [token for token in generated_tokens if token not in stop_words]
+
+    # Vectorize the reference corpus and generated lyrics
+    vectorizer = TfidfVectorizer()
+    reference_vectors = vectorizer.fit_transform(datasets)
+    generated_vector = vectorizer.transform([' '.join(generated_tokens)])
+
+    # Compute cosine similarity between generated lyrics and reference corpus
+    cosine_similarities = (generated_vector * reference_vectors.T).A.flatten()
+    coherence_score = max(cosine_similarities)
+
+    return coherence_score
     
 def generator(text="Salt air", name="lorde"):    
     model = None 
@@ -102,6 +145,16 @@ def generator(text="Salt air", name="lorde"):
                                        output_scores=True)    
     generated_decode = tokenizer.decode(generated_outputs[0])
     print(generated_decode)
+    
+    # Compute perplexity scores
+    # with torch.no_grad():
+    #     loss = generated_decode.loss
+    #     perplexity = torch.exp(loss)
+
+    # print(f"Perplexity: {perplexity.item()}")
+    # coherence_score = evaluate_coherence(generated_decode)
+    # print(f"Coherence Score: {coherence_score}")
+    
     return generated_decode 
     
 if __name__ == "__main__":

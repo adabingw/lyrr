@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup
 CLIENT_ACCESS_TOKEN = '8_KCUXgztIdF9QL3rGPjHjLKDe06BLJg8teuBYGOpGB_jp5GusBkBsgInkaykm3o'
 EPOCHS = 15
 NAMESPACE = 'adabingw'
-MODEL_NAME = 'lyrr-taylorswift'
+MODEL_NAME = 'lyrr-lanadelrey'
 
 def artist_songs(artist_id, per_page=50, page=None, sort='popularity'):
     url = f'https://api.genius.com/artists/{artist_id}/songs?sort={sort}&per_page={per_page}&page={page}'
@@ -26,7 +26,7 @@ def artist_songs(artist_id, per_page=50, page=None, sort='popularity'):
     ).json()
     return data['response']
 
-def get_artist_song_urls(artist_id):
+def get_artist_song_urls(artist_id, artist_name):
     urls = []
     next_page = 1
     print("🍚 Brewing songs")
@@ -37,9 +37,21 @@ def get_artist_song_urls(artist_id):
         for song in data['songs']:
             urls.append(song['url'])
     print("🍶 Songs brewed!")
+    
+    for url in urls[:]: 
+        print(url)
+        artist_song_name = url.split('/')[-1].lower()
+        
+        if "remix" in artist_song_name: 
+            urls.remove(url)
+        
+        elif ''.join(artist_name.lower().split(' ')) not in ''.join(artist_song_name.split('-')): 
+            print("wawawawawawawawa", ''.join(artist_name.lower().split(' ')), ''.join(artist_song_name.split('-')))
+            urls.remove(url)
+    
     return urls
 
-async def get_song_urls(artist_id):
+async def get_song_urls(artist_id, artist_name):
     access_token = 'Bearer ' + CLIENT_ACCESS_TOKEN
     authorization_header = {'authorization': access_token}
     urls = []
@@ -56,6 +68,20 @@ async def get_song_urls(artist_id):
                 for song in response['songs']:
                     urls.append(song['url'])
         print("🍶 Songs brewed!")
+    
+    # making sure that the song has artist as primary artist
+    # also getting rid of remixes
+    for url in urls[:]: 
+        print(url)
+        artist_song_name = url.split('/')[-1].lower()
+        
+        if "remix" in artist_song_name: 
+            urls.remove(url)
+        
+        elif ''.join(artist_name.lower().split(' ')) not in ''.join(artist_song_name.split('-')): 
+            print("wawawawawawawawa", ''.join(artist_name.lower().split(' ')), ''.join(artist_song_name.split('-')))
+            urls.remove(url)
+    
     return urls
 
 def _get_lyrics(song_url):
@@ -104,34 +130,56 @@ def collect_data(artist, genius):
         print("Artist name:", artist_name)
         print("Artist url:", artist_url)
         print("Artist id:", artist.id)
+        
+        print(MODEL_NAME)
 
         datasets = None
         print("Check existing dataset first...")
         array = None 
 
-        try: 
-            url = f"https://huggingface.co/datasets/{NAMESPACE}/{MODEL_NAME}/tree/main"
-            data = requests.get(url).text
-            if data != "Not Found":
-                datasets = load_dataset(f"{NAMESPACE}/{MODEL_NAME}")
-                print("Dataset downloaded!")
-        except: 
-            pass 
+        # try: 
+        #     url = f"https://huggingface.co/datasets/{NAMESPACE}/{MODEL_NAME}/tree/main"
+        #     data = requests.get(url).text
+        #     if data != "Not Found":
+        #         datasets = load_dataset(f"{NAMESPACE}/{MODEL_NAME}")
+        #         print("Dataset downloaded!")
+        # except: 
+        #     pass 
         
         if datasets == None:
             print("Dataset does not exist!")
-            urls = get_artist_song_urls(artist.id)
+            urls = get_artist_song_urls(artist.id, artist_name)
+        
             data = [] 
             print("Getting lyrics...")
             datasets = load_dataset(f"{NAMESPACE}/{MODEL_NAME}")
             for url in urls: 
-                print(url)
                 lyrics = get_lyrics(url) 
+                
                 if lyrics is not None: 
+                    
+                    # skip lyrics that are too short
+                    if len(lyrics) < 800:
+                        continue 
+                    
+                    # get rid of garbage text at beginning of lyrics
                     index = lyrics.find("Lyrics") + len("Lyrics")
                     lyrics = lyrics[index:]
+                    
+                    # get rid of garbage text at end of lyrics
+                    if lyrics[len(lyrics) - 5:] == "Embed":
+                        i = len(lyrics) - 6
+                        while lyrics[i].isdigit() and i > 0: 
+                            i -= 1
+                        
+                        lyrics = lyrics[:i]
+                        
+                    if '/' in lyrics: 
+                        print(lyrics)
+                        
                     data.append(lyrics)
-            
+                    
+            return
             datasets = create_dataset(data) 
             datasets.push_to_hub(f"{NAMESPACE}/{MODEL_NAME}")
             print("Dataset downloaded!")
@@ -160,10 +208,11 @@ def collect_data(artist, genius):
         import Exception
         raise Exception("Artist is None")
 
-def collect(artist_name = "Taylor Swift"): 
+def collect(artist_name = "Lana del Ray"): 
     genius = lyricsgenius.Genius(CLIENT_ACCESS_TOKEN)
     artist = genius.search_artist(artist_name, max_songs=0, get_full_info=False) 
     datasets = collect_data(artist, genius)
+    print(datasets)
     return datasets
 
 if __name__ == "__main__":
