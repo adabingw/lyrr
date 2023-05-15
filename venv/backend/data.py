@@ -39,14 +39,27 @@ def get_artist_song_urls(artist_id, artist_name):
     print("🍶 Songs brewed!")
     
     for url in urls[:]: 
-        print(url)
         artist_song_name = url.split('/')[-1].lower()
+        artist_lower = ''.join(artist_name.lower().split(' '))
+        text = ''.join(artist_song_name.split('-'))
         
-        if "remix" in artist_song_name: 
+        if "remix" in url: 
             urls.remove(url)
+            
+        elif 'discography' in url or \
+            'videography' in url or \
+            'annotated' in url or \
+            'discography' in url or \
+            'version' in url or \
+            'demo' in url or \
+            'instrumental' in url or \
+            'unreleased' in url or \
+            'translation' in url or \
+            '-live-' in url or \
+            'radio-mix' in url: 
+            urls.remove(url) 
         
-        elif ''.join(artist_name.lower().split(' ')) not in ''.join(artist_song_name.split('-')): 
-            print("wawawawawawawawa", ''.join(artist_name.lower().split(' ')), ''.join(artist_song_name.split('-')))
+        elif text[:len(artist_lower)] != artist_lower:
             urls.remove(url)
     
     return urls
@@ -72,14 +85,27 @@ async def get_song_urls(artist_id, artist_name):
     # making sure that the song has artist as primary artist
     # also getting rid of remixes
     for url in urls[:]: 
-        print(url)
         artist_song_name = url.split('/')[-1].lower()
+        artist_lower = ''.join(artist_name.lower().split(' '))
+        text = ''.join(artist_song_name.split('-'))
         
-        if "remix" in artist_song_name: 
+        if "remix" in url: 
             urls.remove(url)
+            
+        elif 'discography' in url or \
+            'videography' in url or \
+            'annotated' in url or \
+            'discography' in url or \
+            'version' in url or \
+            'demo' in url or \
+            'instrumental' in url or \
+            'unreleased' in url or \
+            'translation' in url or \
+            '-live-' in url or \
+            'radio-mix' in url: 
+            urls.remove(url) 
         
-        elif ''.join(artist_name.lower().split(' ')) not in ''.join(artist_song_name.split('-')): 
-            print("wawawawawawawawa", ''.join(artist_name.lower().split(' ')), ''.join(artist_song_name.split('-')))
+        elif text[:len(artist_lower)] != artist_lower:
             urls.remove(url)
     
     return urls
@@ -154,6 +180,7 @@ def collect_data(artist, genius):
             print("Getting lyrics...")
             datasets = load_dataset(f"{NAMESPACE}/{MODEL_NAME}")
             for url in urls: 
+                print(url)
                 lyrics = get_lyrics(url) 
                 
                 if lyrics is not None: 
@@ -174,12 +201,11 @@ def collect_data(artist, genius):
                         
                         lyrics = lyrics[:i]
                         
-                    if '/' in lyrics: 
-                        print(lyrics)
+                    if '//' in lyrics: 
+                        continue
                         
                     data.append(lyrics)
                     
-            return
             datasets = create_dataset(data) 
             datasets.push_to_hub(f"{NAMESPACE}/{MODEL_NAME}")
             print("Dataset downloaded!")
