@@ -3,17 +3,19 @@ import aiohttp
 import lyricsgenius
 import re
 import json
+import pathlib
+from transformers import AutoTokenizer, AutoModelForCausalLM, TrainingArguments, Trainer
 from datasets import Dataset, DatasetDict, load_dataset
 import random
 import numpy as np
-
 from bs4 import BeautifulSoup
 
 CLIENT_ACCESS_TOKEN = '8_KCUXgztIdF9QL3rGPjHjLKDe06BLJg8teuBYGOpGB_jp5GusBkBsgInkaykm3o'
-EPOCHS = 15
+EPOCHS = 25
 NAMESPACE = 'adabingw'
 MODEL_NAME = 'lyrr-lanadelrey'
 
+# gets list of artist's songs from lyricgenius
 def artist_songs(artist_id, per_page=50, page=None, sort='popularity'):
     url = f'https://api.genius.com/artists/{artist_id}/songs?sort={sort}&per_page={per_page}&page={page}'
     headers = {
@@ -26,6 +28,7 @@ def artist_songs(artist_id, per_page=50, page=None, sort='popularity'):
     ).json()
     return data['response']
 
+# get list of artist's song urls
 def get_artist_song_urls(artist_id, artist_name):
     urls = []
     next_page = 1
@@ -64,6 +67,7 @@ def get_artist_song_urls(artist_id, artist_name):
     
     return urls
 
+# gets song url
 async def get_song_urls(artist_id, artist_name):
     access_token = 'Bearer ' + CLIENT_ACCESS_TOKEN
     authorization_header = {'authorization': access_token}
@@ -110,9 +114,9 @@ async def get_song_urls(artist_id, artist_name):
     
     return urls
 
+# get lyrics from song
 def _get_lyrics(song_url):
     text = requests.get(song_url, stream=True).text
-    
     html = BeautifulSoup(text.replace('<br/>', '\n'), 'html.parser')
     div = html.find("div", class_=re.compile("^lyrics$|Lyrics__Root"))
     if div is None:
@@ -120,9 +124,9 @@ def _get_lyrics(song_url):
 
     lyrics = div.get_text()
 
+    # getting rid of strange things in the lyric scrapper
     lyrics = re.sub(r'(\[.*?\])*', '', lyrics)
     lyrics = re.sub('\n{2}', '\n', lyrics)  # Gaps between verses
-    
     lyrics = str(lyrics.strip('\n'))
     lyrics = lyrics.replace('\n', " ")
     lyrics = lyrics.replace("EmbedShare URLCopyEmbedCopy", "").replace("'", "")
@@ -140,12 +144,14 @@ def _get_lyrics(song_url):
 def get_lyrics(url):
     return _get_lyrics(url)
 
+# creates a dataset object from lyrics
 def create_dataset(lyrics):
     dataset = {}
     dataset['train'] = Dataset.from_dict({'text': list(lyrics)})
     datasets = DatasetDict(dataset)
     del dataset
     return datasets
+
 
 def collect_data(artist, genius): 
     if artist is not None:
@@ -163,14 +169,15 @@ def collect_data(artist, genius):
         print("Check existing dataset first...")
         array = None 
 
-        # try: 
-        #     url = f"https://huggingface.co/datasets/{NAMESPACE}/{MODEL_NAME}/tree/main"
-        #     data = requests.get(url).text
-        #     if data != "Not Found":
-        #         datasets = load_dataset(f"{NAMESPACE}/{MODEL_NAME}")
-        #         print("Dataset downloaded!")
-        # except: 
-        #     pass 
+        # try to get a database from hugging_face first
+        try: 
+            url = f"https://huggingface.co/datasets/{NAMESPACE}/{MODEL_NAME}/tree/main"
+            data = requests.get(url).text
+            if data != "Not Found":
+                datasets = load_dataset(f"{NAMESPACE}/{MODEL_NAME}")
+                print("Dataset downloaded!")
+        except: 
+            pass 
         
         if datasets == None:
             print("Dataset does not exist!")
@@ -208,7 +215,7 @@ def collect_data(artist, genius):
                     
             datasets = create_dataset(data) 
             datasets.push_to_hub(f"{NAMESPACE}/{MODEL_NAME}")
-            print("Dataset downloaded!")
+            print("Dataset created!")
         
         array = datasets['train']['text']
         assert array is not None
@@ -240,6 +247,27 @@ def collect(artist_name = "Lana del Ray"):
     datasets = collect_data(artist, genius)
     print(datasets)
     return datasets
+
+def get_artist(artist_name = "Lana del Ray"):
+    genius = lyricsgenius.Genius(CLIENT_ACCESS_TOKEN)
+    artist = genius.search_artist(artist_name, max_songs=0, get_full_info=True) 
+    artist_dict = genius.artist(artist.id)['artist']        
+    MODEL_NAME = "lyrr-" + artist_dict["name"].replace(" ", "").lower()
+    print(MODEL_NAME)
+    found = False
+    try: 
+        print("heh")
+        model = AutoModelForCausalLM.from_pretrained(f"{NAMESPACE}/{MODEL_NAME}", cache_dir=pathlib.Path(MODEL_NAME).resolve())
+        found = True
+    except:
+        print("what")
+        found = False
+    return {
+        'name': artist_dict["name"],
+        'image': artist_dict["image_url"],
+        'id': artist.id,
+        'exists': found
+    }    
 
 if __name__ == "__main__":
     collect()

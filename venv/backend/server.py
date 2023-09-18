@@ -1,6 +1,6 @@
 from flask import Flask, request 
 from flask_cors import CORS, cross_origin
-from data import collect 
+from data import collect, get_artist
 from model import generator
 
 app = Flask(__name__)
@@ -40,6 +40,20 @@ def get_lyrics():
 @cross_origin()
 def generate_new_model(): 
     print("generate new model") 
+    
+@app.route('/artist', methods=['GET']) 
+@cross_origin() 
+def get_artists():
+    """ Get artist information from artist name
+        args:
+            artist_name: str
+    """
+    print("get artist") 
+    artists = get_artist(request.args.get('artist_name'))
+    print(artists)
+    return {
+        'artist': artists
+    }
     
 if __name__ == "__main__":
     app.run(debug = True)

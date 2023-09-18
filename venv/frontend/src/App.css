@@ -46,3 +46,44 @@
 .spin-wrapper .uil-spin-css > div > div {
   background: black !important;
 }
+
+.artist_img {
+  width: 70px;
+  border-radius: 50%;
+  margin: 15px;
+}
+
+.found_artist {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.input {
+  height: 20px;
+  width: 275px;
+  padding-left: 8px;
+  padding-right: 8px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  border-radius: 12px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.button {
+  background-color: white;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-top: 5px; 
+  padding-bottom: 5px;
+  border-radius: 12px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.button:hover {
+  cursor: pointer;
+}

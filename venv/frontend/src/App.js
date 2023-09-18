@@ -1,110 +1,49 @@
 import './App.css';
 import axios from "axios";
 import { useState, useEffect } from 'react';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import Select from '@mui/material/Select';
-import {ReactSpinner} from 'react-spinning-wheel';
-import 'react-spinning-wheel/dist/style.css';
+import { useNavigate } from 'react-router-dom';
 
 function App() {
-  const [text, setText] = useState("")
-  const [lyrics, setLyrics] = useState("")
-  const [models, setModels] = useState([])
-  const [artist, setArtist] = useState(0)
-  const [show, setShow] = useState(false)
+  const [artist, setArtist] = useState("")
+  const [info, setInfo] = useState({})
+  const navigate = useNavigate()
 
-  useEffect(() => {
-    axios.post(`http://127.0.0.1:5000/select`)
+  const search_artist = async() => {
+    console.log("searching for artist")
+    await axios.get(`http://127.0.0.1:5000/artist?artist_name=${artist}`)
     .then((res) => {
       console.log(res['data'])
-      setModels(res['data']['models'])
+      setInfo(res['data']['artist'])
     })
-    .catch((err) => {
-        console.log(err)
-    })
-  }, [])
-
-  const parse_models = () => {
-    console.log("models: ", models)
-    if(models.length === 0) {
-      return (
-        <MenuItem value={0}>something has gone wrong :|</MenuItem>
-      )
-    } else {
-      return (
-        <div>
-          { models.map((model, index) => {
-              return (
-                <MenuItem value={index}>{model}</MenuItem>
-              )
-            })}
-        </div>
-      )
-    }
   }
 
-  const get_lyrics = async() => {
-    let artist_name = models[artist].replace(" ", "").toLowerCase();
-    setLyrics('')
-    setShow(true)
-    console.log("artist name: ", artist_name)
-    await axios.post(`http://127.0.0.1:5000/lyrics?lyrics=${text}&artist=${artist_name}`)
-    .then((res) => {
-      console.log(res['data'])
-      setLyrics(res['data']['lyrics'])
-    })
-    .catch((err) => {
-        console.log(err)
-        alert("Something has gone wrong :( please try again")
-        setShow(false) 
-        setLyrics('')
-    })
+  const select_artist = () => {
+    if (info.exists) {
+      navigate(`/lyrics`, { state: { id: info.id, artist: info.name } })
+    } else {
+      alert('artist does not exist');
+    }
   }
 
   return (
     <div className="App">
-      <div className="title">
-        LYRR
-      </div>
-        Choose from our available artists:
-        <FormControl sx={{ m: 1, minWidth: 300 }} >
-          <Select
-            value={artist}
-            displayEmpty
-            inputProps={{ 'aria-label': 'Without label' }}
-            onChange={(e) => {setArtist(e.target.value)}}
-            sx={{
-                minWidth: "300px",
-                height: "35px",
-                "& .MuiSelect-select": {
-                  padding: "0.2rem"
-                },
-                ".MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#454545 !important"
-                }
-            }}
-          >
-            { models.map((model, index) => {
-              return (
-                <MenuItem value={index}>{model}</MenuItem>
-              )
-            })}
-          </Select>
-        </FormControl> <br />
-        Start the lyrics:
-        <input onChange={(e) => setText(e.target.value)} className="lyric-input" maxLength={25}/> <br />
-        <button onClick={get_lyrics} className="get-lyrics" disabled={text.length === 0 || models.length === 0}>
-              get lyrics
-        </button>
-        <div className="lyrics">
-            {lyrics}
+        <div className="title">
+            LYRR
         </div>
-        <div className="spinner">
-          { show && lyrics === '' &&
-              <ReactSpinner />
+        enter artist name: 
+        <input type="text" onChange={(e) => setArtist(e.target.value)} className="input"/>
+        <button onClick={() => search_artist()} className="button">search</button>
+        {(() => {
+          if (Object.keys(info).length !== 0) {
+            return (
+              <div className="found_artist">
+                <img src={info.image} className="artist_img" alt="img"/>
+                <p>{info.name}</p>
+                <button className="button" onClick={() => select_artist()}>select</button>
+              </div>
+            )
           }
-        </div>
+        })()}
     </div>
   );
 }
