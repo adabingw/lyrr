@@ -1,12 +1,13 @@
 import './App.css';
 import axios from "axios";
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import MenuItem from '@mui/material/MenuItem';
 import {ReactSpinner} from 'react-spinning-wheel';
 import 'react-spinning-wheel/dist/style.css';
 
 function Generate() {
+  const navigate = useNavigate()
   let { state } = useLocation();
   let { artist, id } = state;
   const [text, setText] = useState("")
@@ -31,16 +32,24 @@ function Generate() {
     })
   }
 
+  const handlePress = (e) => {
+    if(e.key === 'Enter') { 
+      get_lyrics()
+    }
+   }
+
   return (
     <div className="App">
-    {/* route back to home */}
-        <div className="title"> 
+        <div className="title" onClick={() => navigate('/')}> 
           LYRR
         </div>
         <p>{artist}</p>
         start with something:
-        <input onChange={(e) => setText(e.target.value)} className="lyric-input" maxLength={25}/> <br />
-        <button onClick={get_lyrics} className="get-lyrics" disabled={text.length === 0}>
+        <input onChange={(e) => setText(e.target.value)} className="lyric-input" maxLength={50}
+          onKeyDown={(e) => handlePress(e)}
+        /> <br />
+        <button onClick={get_lyrics} className="get-lyrics" 
+          disabled={text.length === 0}>
               get lyrics
         </button>
         <div className="lyrics">

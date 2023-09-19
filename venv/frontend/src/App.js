@@ -25,13 +25,21 @@ function App() {
     }
   }
 
+  const handlePress = (e) => {
+    if(e.key === 'Enter') { 
+      search_artist()
+    }
+  }
+
   return (
     <div className="App">
         <div className="title">
             LYRR
         </div>
         enter artist name: 
-        <input type="text" onChange={(e) => setArtist(e.target.value)} className="input"/>
+        <input type="text" onChange={(e) => setArtist(e.target.value)} className="input" 
+            onKeyDown={(e) => handlePress(e)}
+        />
         <button onClick={() => search_artist()} className="button">search</button>
         {(() => {
           if (Object.keys(info).length !== 0) {
