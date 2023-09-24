@@ -8,14 +8,6 @@ CORS(app, support_credentials=True)
 
 models = ['Lorde', 'Taylor Swift'] 
 
-@app.route('/select', methods=['POST'])
-@cross_origin()
-def post_existing_models(): 
-    print("posting existing models")
-    return {
-        'models': models 
-    }
-
 @app.route('/lyrics', methods=['POST'])
 @cross_origin()
 def get_lyrics(): 

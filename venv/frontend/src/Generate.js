@@ -19,16 +19,30 @@ function Generate() {
     setLyrics('')
     setShow(true)
     console.log("artist name: ", artist_name)
-    await axios.post(`http://127.0.0.1:5000/lyrics?lyrics=${text}&artist=${artist_name}`)
+    // await axios.post(`http://127.0.0.1:5000/lyrics?lyrics=${text}&artist=${artist_name}`)
+    // .then((res) => {
+    //   console.log(res['data'])
+    //   setLyrics(res['data']['lyrics'])
+    // })
+    // .catch((err) => {
+    //     console.log(err)
+    //     alert("Something has gone wrong :( please try again")
+    //     setShow(false) 
+    //     setLyrics('')
+    // })
+
+    await axios.get(
+      `https://ncoztkt0v6.execute-api.us-east-2.amazonaws.com/dev/lyrr-backend/artists?lyrics=${text}&artist=${artist_name}`
+    )
     .then((res) => {
-      console.log(res['data'])
-      setLyrics(res['data']['lyrics'])
+      console.log(res['body'])
+      setLyrics(res['body'])
     })
     .catch((err) => {
-        console.log(err)
-        alert("Something has gone wrong :( please try again")
-        setShow(false) 
-        setLyrics('')
+      console.log(err)
+      alert("Something has gone wrong :( please try again")
+      setShow(false) 
+      setLyrics('')
     })
   }
 
