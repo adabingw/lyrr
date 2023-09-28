@@ -11,7 +11,7 @@ function App() {
   const search_artist = async() => {
     console.log("searching for artist")
     await axios.get(
-      `https://ncoztkt0v6.execute-api.us-east-2.amazonaws.com/dev/lyrr-backend/artists?artist_name=${artist}`
+      `https://ncoztkt0v6.execute-api.us-east-2.amazonaws.com/dev/lyrr-backend/artist?artist_name=${artist}`
     )
     .then((res) => {
       console.log(res['body'])
