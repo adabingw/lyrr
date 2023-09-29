@@ -16,7 +16,7 @@ function App() {
     // .then((response) => response.json())
     .then((res) => {
       console.log(res['data'])
-      setInfo(JSON.parse(res['data']))
+      setInfo(res['data'])
     })
     .catch((err) => {
       console.log(err)
