@@ -13,8 +13,9 @@ function App() {
     await axios.get(
       `https://ncoztkt0v6.execute-api.us-east-2.amazonaws.com/dev/lyrr-backend/artist?artist_name=${artist}`
     )
+    .then((response) => response.json())
     .then((res) => {
-      console.log(res['body'])
+      console.log(res)
       setInfo(res['body'])
     })
     .catch((err) => {
