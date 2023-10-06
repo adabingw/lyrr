@@ -48,7 +48,7 @@ function App() {
         <div className="title">
             LYRR
         </div>
-        <a href="https://github.com/adabingw/lyrr" target="_blank"><i class="fa-brands fa-github fa-sm"></i></a>
+        <a href="https://github.com/adabingw/lyrr" target="_blank"><i class="fa-brands fa-github fa-lg"></i></a>
         enter artist name: 
         <input type="text" onChange={(e) => setArtist(e.target.value)} className="input" 
             onKeyDown={(e) => handlePress(e)}
